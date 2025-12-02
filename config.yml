@@ -1,6 +1,0 @@
-tunnel: blizu-portfolio
-credentials-file: C:/Users/blizz/.cloudflared/97516448-a6ff-469a-a4e6-33abaf567a7b.json
-ingress:
-  - hostname: blizzdev.site
-    service: http://localhost:8080
-  - service: http_status:404
