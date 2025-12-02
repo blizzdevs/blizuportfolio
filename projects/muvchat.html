@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MU Voice Chat - Demo Avanzada</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .server-section, .client-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+        .server-section {
+            background: #f8f9fa;
+        }
+        .client-section {
+            background: #e9ecef;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 12px 25px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #218838;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .mute-btn { background: #dc3545; }
+        .mute-btn:hover { background: #c82333; }
+        .position-inputs {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        input {
+            padding: 8px;
+            width: 80px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .user-list {
+            border: 1px solid #ccc;
+            height: 250px;
+            overflow-y: auto;
+            padding: 15px;
+            margin: 20px 0;
+            background: #fafafa;
+            border-radius: 5px;
+        }
+        .user {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .user:hover {
+            background: #f0f0f0;
+        }
+        .muted {
+            color: #999;
+            font-style: italic;
+        }
+        .active {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .status {
+            text-align: center;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .logs {
+            background: #343a40;
+            color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            height: 150px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .config-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .config-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 400px;
+            width: 90%;
+        }
+        .config-content label {
+            display: block;
+            margin: 10px 0;
+        }
+        .config-content input {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MU Voice Chat - Demo Avanzada</h1>
+        <p>Simulación completa: Servidor mock retransmite audio, clientes con posiciones y proximidad. Abre múltiples pestañas para simular usuarios.</p>
+
+        <div class="server-section">
+            <h2>Servidor Mock</h2>
+            <button id="startServerBtn">Iniciar Servidor</button>
+            <div class="logs" id="serverLogs">Logs del servidor aparecerán aquí...</div>
+        </div>
+
+        <div class="client-section">
+            <h2>Cliente</h2>
+            <div class="controls">
+                <button id="startBtn">Iniciar Audio</button>
+                <button id="muteBtn" disabled class="mute-btn">Mute</button>
+                <button id="deafenBtn" disabled class="mute-btn">Deafen</button>
+                <button id="configBtn">Config</button>
+            </div>
+
+            <div class="position-inputs">
+                <label>Pos X: <input type="number" id="posX" value="0"></label>
+                <label>Pos Y: <input type="number" id="posY" value="0"></label>
+                <label>Pos Z: <input type="number" id="posZ" value="0"></label>
+            </div>
+
+            <div class="user-list" id="userList"></div>
+
+            <div class="status" id="status">Estado: No conectado</div>
+        </div>
+    </div>
+
+    <div class="config-modal" id="configModal">
+        <div class="config-content">
+            <h3>Configuración</h3>
+            <label>Volumen Mic: <input type="range" id="micVolume" min="0" max="100" value="50"></label>
+            <label>Volumen Salida: <input type="range" id="outputVolume" min="0" max="100" value="50"></label>
+            <label><input type="checkbox" id="noiseSuppression"> Supresión de Ruido</label>
+            <button id="saveConfig">Guardar</button>
+            <button id="closeConfig">Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        // Mock servidor: simula retransmisión global
+        let serverRunning = false;
+        let connectedClients = [];
+        const serverLogs = document.getElementById('serverLogs');
+
+        function logServer(message) {
+            serverLogs.innerHTML += new Date().toLocaleTimeString() + ': ' + message + '<br>';
+            serverLogs.scrollTop = serverLogs.scrollHeight;
+        }
+
+        document.getElementById('startServerBtn').addEventListener('click', () => {
+            if (!serverRunning) {
+                serverRunning = true;
+                logServer('Servidor iniciado. Esperando conexiones...');
+                // En demo, simula polling DB
+                setInterval(() => {
+                    if (connectedClients.length > 0) {
+                        logServer('Actualizando posiciones de DB. Clientes conectados: ' + connectedClients.length);
+                    }
+                }, 5000);
+            }
+        });
+
+        // Cliente
+        let localStream;
+        let isMuted = false;
+        let isDeafened = false;
+        let myName = 'Usuario' + Math.floor(Math.random() * 1000);
+        let users = [
+            {name: 'Usuario1', pos: {x: 0, y: 0, z: 0}, muted: false, stream: null},
+            {name: 'Usuario2', pos: {x: 10, y: 0, z: 0}, muted: true, stream: null},
+            {name: 'Usuario3', pos: {x: 0, y: 10, z: 0}, muted: false, stream: null}
+        ];
+
+        const startBtn = document.getElementById('startBtn');
+        const muteBtn = document.getElementById('muteBtn');
+        const deafenBtn = document.getElementById('deafenBtn');
+        const configBtn = document.getElementById('configBtn');
+        const posX = document.getElementById('posX');
+        const posY = document.getElementById('posY');
+        const posZ = document.getElementById('posZ');
+        const userList = document.getElementById('userList');
+        const status = document.getElementById('status');
+        const configModal = document.getElementById('configModal');
+        const saveConfig = document.getElementById('saveConfig');
+        const closeConfig = document.getElementById('closeConfig');
+
+        startBtn.addEventListener('click', async () => {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({audio: true});
+                status.textContent = 'Estado: Conectado al servidor';
+                startBtn.disabled = true;
+                muteBtn.disabled = false;
+                deafenBtn.disabled = false;
+                connectedClients.push(myName);
+                logServer('Cliente conectado: ' + myName);
+                // Simular recepción de audio de otros (en demo, no real WebRTC P2P)
+                updateUsers();
+            } catch (err) {
+                status.textContent = 'Error: ' + err.message;
+            }
+        });
+
+        muteBtn.addEventListener('click', () => {
+            isMuted = !isMuted;
+            muteBtn.textContent = isMuted ? 'Unmute' : 'Mute';
+            if (localStream) {
+                localStream.getAudioTracks()[0].enabled = !isMuted;
+            }
+            logServer(myName + (isMuted ? ' muted' : ' unmuted'));
+            updateUsers();
+        });
+
+        deafenBtn.addEventListener('click', () => {
+            isDeafened = !isDeafened;
+            deafenBtn.textContent = isDeafened ? 'Undeafen' : 'Deafen';
+            updateUsers();
+        });
+
+        configBtn.addEventListener('click', () => {
+            configModal.style.display = 'flex';
+        });
+
+        saveConfig.addEventListener('click', () => {
+            alert('Config guardada (simulado)');
+            configModal.style.display = 'none';
+        });
+
+        closeConfig.addEventListener('click', () => {
+            configModal.style.display = 'none';
+        });
+
+        [posX, posY, posZ].forEach(input => {
+            input.addEventListener('input', () => {
+                logServer(myName + ' cambió posición a (' + posX.value + ',' + posY.value + ',' + posZ.value + ')');
+                updateUsers();
+            });
+        });
+
+        userList.addEventListener('dblclick', (e) => {
+            if (e.target.classList.contains('user')) {
+                const name = e.target.textContent.split(' ')[0];
+                const user = users.find(u => u.name === name);
+                if (user) {
+                    user.muted = !user.muted;
+                    logServer(myName + ' toggled mute for ' + name);
+                    updateUsers();
+                }
+            }
+        });
+
+        function updateUsers() {
+            userList.innerHTML = '';
+            users.forEach(user => {
+                const distance = Math.sqrt(
+                    Math.pow(user.pos.x - parseFloat(posX.value), 2) +
+                    Math.pow(user.pos.y - parseFloat(posY.value), 2) +
+                    Math.pow(user.pos.z - parseFloat(posZ.value), 2)
+                );
+                const inRange = distance < 50; // Proximidad
+                const effectiveMuted = user.muted || isDeafened || !inRange;
+                const className = effectiveMuted ? 'muted' : 'active';
+                userList.innerHTML += `<div class="user ${className}">${user.name} (${user.pos.x},${user.pos.y},${user.pos.z}) - ${effectiveMuted ? 'Silenciado' : 'Activo'}</div>`;
+            });
+        }
+
+        updateUsers();
+    </script>
+</body>
+</html></content>
+<parameter name="filePath">demo.html

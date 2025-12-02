@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlizuOverlay Demo</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .overlay-window {
+            position: fixed;
+            top: 50px;
+            left: 50px;
+            width: 450px;
+            height: 650px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            pointer-events: auto;
+            backdrop-filter: blur(10px);
+        }
+        .header {
+            background: linear-gradient(90deg, #1a1a1a, #2a2a2a);
+            color: white;
+            padding: 8px 15px;
+            cursor: move;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #444;
+            border-radius: 8px 8px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: bold;
+            position: relative;
+        }
+        .controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .controls button {
+            background: #444;
+            border: none;
+            color: white;
+            padding: 4px 8px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .controls button:hover {
+            background: #555;
+        }
+        .panels {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .panel {
+            padding: 10px;
+            border-bottom: 1px solid #333;
+        }
+        .follower-panel {
+            background: #1a1a1a;
+            padding: 8px 15px;
+            border-bottom: 1px solid #333;
+        }
+        .follower-panel h3 {
+            margin: 0 0 8px 0;
+            color: #ccc;
+            font-size: 12px;
+        }
+        .follower-grid {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .platform {
+            text-align: center;
+            color: white;
+        }
+        .platform .icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+        }
+        .platform .count {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .alert-panel {
+            background: #0a0a0a;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+        .alert-panel h3 {
+            margin: 0 0 8px 0;
+            color: #ccc;
+            font-size: 12px;
+        }
+        .alert {
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            animation: slideIn 0.5s ease-out;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .alert.donation {
+            background: linear-gradient(90deg, #27ae60, #229954);
+        }
+        .alert.sub {
+            background: linear-gradient(90deg, #9b59b6, #8e44ad);
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .chat-panel {
+            background: #0a0a0a;
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-panel h3 {
+            margin: 0 0 8px 0;
+            color: #ccc;
+            font-size: 12px;
+        }
+        .messages {
+            flex: 1;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            overflow-y: auto;
+            max-height: 200px;
+        }
+        .message {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: flex-start;
+        }
+        .message .icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            margin-top: 2px;
+        }
+        .message .text {
+            background: #2a2a2a;
+            padding: 6px 10px;
+            border-radius: 12px;
+            color: white;
+            font-size: 13px;
+            max-width: 300px;
+            word-wrap: break-word;
+        }
+        .composer-panel {
+            background: #1a1a1a;
+            padding: 10px 15px;
+            border-top: 1px solid #333;
+        }
+        .composer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .platform-select {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .message-input {
+            flex: 1;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+        .send-btn {
+            background: #6441a5;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .send-btn:hover {
+            background: #7c4bb8;
+        }
+        .config-window {
+            position: fixed;
+            top: 100px;
+            left: 550px;
+            width: 500px;
+            height: 600px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.7);
+            z-index: 1001;
+            display: none;
+            flex-direction: column;
+        }
+        .config-window.show {
+            display: flex;
+        }
+        .config-header {
+            background: #2a2a2a;
+            color: white;
+            padding: 10px 15px;
+            border-bottom: 1px solid #444;
+            border-radius: 8px 8px 0 0;
+        }
+        .config-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .tab-btn {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .tab-btn.active {
+            background: #6441a5;
+        }
+        .config-content {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        .config-section {
+            margin-bottom: 20px;
+        }
+        .config-section h4 {
+            color: #ccc;
+            margin: 0 0 10px 0;
+            font-size: 14px;
+        }
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .setting-item label {
+            color: white;
+            font-size: 13px;
+        }
+        .setting-item input[type="range"] {
+            width: 100px;
+        }
+        .setting-item input[type="checkbox"] {
+            margin-left: 10px;
+        }
+        .platform-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #666;
+        }
+        .status-indicator.connected {
+            background: #27ae60;
+        }
+        .connect-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .connect-btn.connected {
+            background: #27ae60;
+        }
+        .sound-setting {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .sound-setting input {
+            width: 60px;
+        }
+        .test-btn {
+            background: #f39c12;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .widget-panel {
+            background: #1a1a1a;
+            padding: 10px 15px;
+            border-bottom: 1px solid #333;
+        }
+        .widget-panel h3 {
+            margin: 0 0 8px 0;
+            color: #ccc;
+            font-size: 12px;
+        }
+        .widget-container {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 10px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            font-size: 14px;
+        }
+        .sound-wave {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: #27ae60;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .platform-connected {
+            border-left: 3px solid #27ae60;
+        }
+        .platform-disconnected {
+            border-left: 3px solid #e74c3c;
+        }
+        .stream-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #27ae60;
+            animation: blink 2s infinite;
+        }
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+        .chat-typing {
+            font-style: italic;
+            color: #888;
+            animation: typing 1.5s infinite;
+        }
+        @keyframes typing {
+            0%, 60%, 100% { opacity: 1; }
+            30% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay-window" id="overlay">
+        <div class="header" id="header">
+            <h1>⚙️ BlizzOverlay <span id="notification-badge" class="notification-badge" style="display:none;">0</span></h1>
+            <div class="controls">
+                <input type="range" id="opacity" min="0.1" max="1" step="0.1" value="0.9" title="Transparencia">
+                <button id="lock" title="Bloquear">🔒</button>
+                <button id="config" title="Configuración">⚙️</button>
+                <button id="minimize" title="Minimizar">_</button>
+                <button id="close" title="Cerrar">✖️</button>
+            </div>
+        </div>
+        <div class="follower-panel">
+            <h3>📊 Últimos Seguidores</h3>
+            <div class="follower-grid">
+                <div class="platform platform-connected">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiByeD0iNCIgZmlsbD0iIzkxNGJmZiIvPgo8dGV4dCB4PSIxMiIgeT0iMTYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5UPC90ZXh0Pgo8L3N2Zz4K" alt="Twitch" class="icon">
+                    <div class="count" id="twitch-count">10</div>
+                    <div class="sound-wave" id="twitch-sound" style="display:none;"></div>
+                </div>
+                <div class="platform platform-disconnected">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiByeD0iNCIgZmlsbD0iIzk5OWZmZiIvPgo8dGV4dCB4PSIxMiIgeT0iMTYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9ImJsYWNrIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ZPC90ZXh0Pgo8L3N2Zz4K" alt="YouTube" class="icon">
+                    <div class="count" id="youtube-count">1</div>
+                    <div class="sound-wave" id="youtube-sound" style="display:none;"></div>
+                </div>
+                <div class="platform platform-disconnected">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiByeD0iNCIgZmlsbD0iIzMzMzMzMyIvPgo8dGV4dCB4PSIxMiIgeT0iMTYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5LTwvdGV4dPgo8L3N2Zz4K" alt="Kick" class="icon">
+                    <div class="count" id="kick-count">0</div>
+                    <div class="sound-wave" id="kick-sound" style="display:none;"></div>
+                </div>
+                <div class="platform platform-disconnected">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiByeD0iNCIgZmlsbD0iIzMzMzMzMyIvPgo8dGV4dCB4PSIxMiIgeT0iMTYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5UPC90ZXh0Pgo8L3N2Zz4K" alt="TikTok" class="icon">
+                    <div class="count" id="tiktok-count">3</div>
+                    <div class="sound-wave" id="tiktok-sound" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="widget-panel">
+            <h3>🎨 Custom Widget</h3>
+            <div class="widget-container" id="custom-widget">
+                <div id="widget-content">Widget personalizado aquí<br>(URL: <input type="text" id="widget-url" placeholder="https://..." style="width:200px;background:#444;border:1px solid #666;color:white;padding:2px;border-radius:3px;"> <button id="load-widget" style="background:#6441a5;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;">Cargar</button>)</div>
+            </div>
+        </div>
+        <div class="panel alert-panel">
+            <h3>🔔 Multi Alertas</h3>
+            <div id="alerts"></div>
+        </div>
+        <div class="panel chat-panel">
+            <h3>💬 Multi Chat</h3>
+            <ul class="messages" id="messages"></ul>
+        </div>
+        <div class="composer-panel">
+            <div class="composer">
+                <select class="platform-select" id="platform-select">
+                    <option value="twitch">💜 Twitch</option>
+                    <option value="youtube">▶️ YouTube</option>
+                    <option value="kick">🎮 Kick</option>
+                    <option value="tiktok">📱 TikTok</option>
+                </select>
+                <input type="text" class="message-input" id="message-input" placeholder="Escribir...">
+                <button class="send-btn" id="send-btn">Enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="stream-status">
+        <div class="status-dot"></div>
+        <span>EN VIVO - 2,547 espectadores</span>
+    </div>
+
+    <div class="config-window" id="configWindow">
+        <div class="config-header">
+            <h2>⚙️ Configuración</h2>
+        </div>
+        <div class="config-content">
+            <div class="config-tabs">
+                <button class="tab-btn active" data-tab="appearance">🎨 Apariencia</button>
+                <button class="tab-btn" data-tab="platforms">🌐 Plataformas</button>
+                <button class="tab-btn" data-tab="sounds">🔊 Sonidos</button>
+                <button class="tab-btn" data-tab="testing">🧪 Testing</button>
+                <button class="tab-btn" data-tab="contact">📞 Contacto</button>
+            </div>
+            <div id="tab-content">
+                <div class="tab-pane active" id="appearance">
+                    <div class="config-section">
+                        <h4>Transparencia</h4>
+                        <div class="setting-item">
+                            <label>Opacidad:</label>
+                            <input type="range" id="config-opacity" min="0.1" max="1" step="0.1" value="0.9">
+                        </div>
+                        <div class="setting-item">
+                            <label>Click-through:</label>
+                            <input type="checkbox" id="config-clickthrough">
+                        </div>
+                        <div class="setting-item">
+                            <label>Bloquear ventana:</label>
+                            <input type="checkbox" id="config-lock">
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="platforms">
+                    <div class="config-section">
+                        <div class="platform-status">
+                            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiByeD0iNCIgZmlsbD0iIzkxNGJmZiIvPgo8dGV4dCB4PSIxMiIgeT0iMTYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5UPC90ZXh0Pgo8L3N2Zz4K" alt="Twitch" style="width:20px;height:20px;">
+                            <span>💜 Twitch</span>
+                            <div class="status-indicator connected"></div>
+                            <button class="connect-btn connected">🟢 Conectado</button>
+                        </div>
+                        <div class="platform-status">
+                            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiByeD0iNCIgZmlsbD0iIzk5OWZmZiIvPgo8dGV4dCB4PSIxMiIgeT0iMTYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9ImJsYWNrIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ZPC90ZXh0Pgo8L3N2Zz4K" alt="YouTube" style="width:20px;height:20px;">
+                            <span>▶️ YouTube</span>
+                            <div class="status-indicator"></div>
+                            <button class="connect-btn">🔗 Conectar</button>
+                        </div>
+                        <div class="platform-status">
+                            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiByeD0iNCIgZmlsbD0iIzMzMzMzMyIvPgo8dGV4dCB4PSIxMiIgeT0iMTYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5LTwvdGV4dPgo8L3N2Zz4K" alt="Kick" style="width:20px;height:20px;">
+                            <span>🎮 Kick</span>
+                            <div class="status-indicator"></div>
+                            <button class="connect-btn">🔗 Conectar</button>
+                        </div>
+                        <div class="platform-status">
+                            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiByeD0iNCIgZmlsbD0iIzMzMzMzMyIvPgo8dGV4dCB4PSIxMiIgeT0iMTYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5UPC90ZXh0Pgo8L3N2Zz4K" alt="TikTok" style="width:20px;height:20px;">
+                            <span>📱 TikTok</span>
+                            <div class="status-indicator"></div>
+                            <button class="connect-btn">🔗 Conectar</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="sounds">
+                    <div class="config-section">
+                        <h4>Volumen General</h4>
+                        <div class="setting-item">
+                            <label>Volumen:</label>
+                            <input type="range" id="sound-volume" min="0" max="100" value="80">
+                        </div>
+                        <div class="setting-item">
+                            <label>Sonidos activados:</label>
+                            <input type="checkbox" id="sound-enabled" checked>
+                        </div>
+                        <h4>Sonidos por Evento</h4>
+                        <div class="sound-setting">
+                            <label>Chat:</label>
+                            <input type="text" value="default.mp3" readonly>
+                            <button>📁</button>
+                            <button id="test-chat-sound">🔊</button>
+                        </div>
+                        <div class="sound-setting">
+                            <label>Donación:</label>
+                            <input type="text" value="coin.mp3" readonly>
+                            <button>📁</button>
+                            <button id="test-donation-sound">🔊</button>
+                        </div>
+                        <div class="sound-setting">
+                            <label>Seguidor:</label>
+                            <input type="text" value="follow.mp3" readonly>
+                            <button>📁</button>
+                            <button id="test-follower-sound">🔊</button>
+                        </div>
+                        <div class="sound-setting">
+                            <label>Suscripción:</label>
+                            <input type="text" value="sub.mp3" readonly>
+                            <button>📁</button>
+                            <button id="test-sub-sound">🔊</button>
+                        </div>
+                        <div class="sound-setting">
+                            <label>Raid:</label>
+                            <input type="text" value="raid.mp3" readonly>
+                            <button>📁</button>
+                            <button id="test-raid-sound">🔊</button>
+                        </div>
+                        <div class="sound-setting">
+                            <label>Bits:</label>
+                            <input type="text" value="bits.mp3" readonly>
+                            <button>📁</button>
+                            <button id="test-bits-sound">🔊</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="testing">
+                    <div class="config-section">
+                        <h4>Simuladores de Eventos</h4>
+                        <button class="test-btn" id="sim-follower">👤 Simular Seguidor</button>
+                        <button class="test-btn" id="sim-sub">⭐ Simular Sub</button>
+                        <button class="test-btn" id="sim-donation">💰 Simular Donación</button>
+                        <button class="test-btn" id="sim-bits">⚡ Simular Bits</button>
+                        <button class="test-btn" id="sim-raid">🚀 Simular Raid</button>
+                        <button class="test-btn" id="sim-chat">💬 Simular Chat</button>
+                        <br><br>
+                        <h4>Testing de Conexión</h4>
+                        <button class="test-btn" id="test-twitch">🔗 Probar Twitch</button>
+                        <button class="test-btn" id="test-youtube">🔗 Probar YouTube</button>
+                        <button class="test-btn" id="test-kick">🔗 Probar Kick</button>
+                        <button class="test-btn" id="test-tiktok">🔗 Probar TikTok</button>
+                        <br><br>
+                        <div class="setting-item">
+                            <label>Auto-simulación:</label>
+                            <input type="checkbox" id="auto-sim" checked>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="contact">
+                    <div class="config-section">
+                        <h4>🤝 Contacto & Soporte</h4>
+                        <p>💬 <strong>Discord:</strong> <a href="https://discord.gg/qWV7CPBzDM" target="_blank" style="color:#7289da;">https://discord.gg/qWV7CPBzDM</a></p>
+                        <p>🐛 <strong>Reportar Bugs:</strong> <a href="https://github.com/blizzdevs/BlizuOverlay/issues" target="_blank" style="color:#ff6b6b;">GitHub Issues</a></p>
+                        <p>📖 <strong>Documentación:</strong> <a href="https://github.com/blizzdevs/BlizuOverlay#readme" target="_blank" style="color:#4ecdc4;">README.md</a></p>
+                        <br>
+                        <h4>💰 Donaciones</h4>
+                        <p>💳 <strong>PayPal:</strong> <a href="https://paypal.me/@keitroxgg" target="_blank" style="color:#0070ba;">paypal.me/@keitroxgg</a></p>
+                        <p>₿ <strong>Binance:</strong> <span style="background:#f0f0f0;padding:2px 4px;border-radius:3px;">tu_wallet_binance</span></p>
+                        <br>
+                        <h4>📊 Estadísticas</h4>
+                        <p>⭐ <strong>Versión:</strong> 1.0.0 Beta</p>
+                        <p>👥 <strong>Usuarios Activos:</strong> 1,247</p>
+                        <p>🎮 <strong>Streams Soportados:</strong> 4 plataformas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables
+        let isDragging = false;
+        let offsetX, offsetY;
+        const overlay = document.getElementById('overlay');
+        const header = document.getElementById('header');
+        const configWindow = document.getElementById('configWindow');
+        const messages = document.getElementById('messages');
+        const alerts = document.getElementById('alerts');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const platformSelect = document.getElementById('platform-select');
+        const customWidget = document.getElementById('custom-widget');
+        const widgetUrl = document.getElementById('widget-url');
+        const loadWidget = document.getElementById('load-widget');
+
+        // Counters
+        let twitchCount = 10;
+        let youtubeCount = 1;
+        let kickCount = 0;
+        let tiktokCount = 3;
+        let notificationCount = 0;
+
+        // Sound system (Web Audio API for demo)
+        let audioContext;
+        let soundEnabled = true;
+        let soundVolume = 0.8;
+
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.log('Web Audio API not supported');
+            }
+        }
+
+        function playBeep(frequency = 440, duration = 200, type = 'sine') {
+            if (!audioContext || !soundEnabled) return;
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+
+            gainNode.gain.setValueAtTime(soundVolume, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration / 1000);
+        }
+
+        initAudio();
+
+        // Dragging
+        header.addEventListener('mousedown', (e) => {
+            if (!overlay.classList.contains('locked')) {
+                isDragging = true;
+                offsetX = e.clientX - overlay.offsetLeft;
+                offsetY = e.clientY - overlay.offsetTop;
+            }
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                overlay.style.left = (e.clientX - offsetX) + 'px';
+                overlay.style.top = (e.clientY - offsetY) + 'px';
+            }
+        });
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        // Opacity
+        document.getElementById('opacity').addEventListener('input', (e) => {
+            overlay.style.opacity = e.target.value;
+        });
+
+        // Lock
+        document.getElementById('lock').addEventListener('click', () => {
+            overlay.classList.toggle('locked');
+        });
+
+        // Config
+        document.getElementById('config').addEventListener('click', () => {
+            configWindow.classList.toggle('show');
+            // Clear notifications when opening config
+            notificationCount = 0;
+            document.getElementById('notification-badge').style.display = 'none';
+        });
+
+        // Close
+        document.getElementById('close').addEventListener('click', () => {
+            overlay.style.display = 'none';
+        });
+
+        // Minimize
+        document.getElementById('minimize').addEventListener('click', () => {
+            overlay.style.height = '50px';
+            setTimeout(() => overlay.style.height = '650px', 2000);
+        });
+
+        // Config tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Config opacity
+        document.getElementById('config-opacity').addEventListener('input', (e) => {
+            overlay.style.opacity = e.target.value;
+            document.getElementById('opacity').value = e.target.value;
+        });
+
+        // Config clickthrough
+        document.getElementById('config-clickthrough').addEventListener('change', (e) => {
+            overlay.style.pointerEvents = e.target.checked ? 'none' : 'auto';
+        });
+
+        // Config lock
+        document.getElementById('config-lock').addEventListener('change', (e) => {
+            if (e.target.checked) {
+                overlay.classList.add('locked');
+            } else {
+                overlay.classList.remove('locked');
+            }
+        });
+
+        // Sound enabled
+        document.getElementById('sound-enabled').addEventListener('change', (e) => {
+            soundEnabled = e.target.checked;
+        });
+
+        // Sound volume
+        document.getElementById('sound-volume').addEventListener('input', (e) => {
+            soundVolume = e.target.value / 100;
+        });
+
+        // Sound test buttons
+        document.getElementById('test-chat-sound').addEventListener('click', () => playBeep(523, 150));
+        document.getElementById('test-donation-sound').addEventListener('click', () => playBeep(659, 300, 'triangle'));
+        document.getElementById('test-follower-sound').addEventListener('click', () => playBeep(784, 200, 'sawtooth'));
+        document.getElementById('test-sub-sound').addEventListener('click', () => playBeep(988, 400, 'square'));
+        document.getElementById('test-raid-sound').addEventListener('click', () => playBeep(1319, 500));
+        document.getElementById('test-bits-sound').addEventListener('click', () => playBeep(1568, 250, 'triangle'));
+
+        // Widget loading
+        loadWidget.addEventListener('click', () => {
+            const url = widgetUrl.value.trim();
+            if (url) {
+                customWidget.innerHTML = `<iframe src="${url}" width="100%" height="200" frameborder="0" style="border-radius:6px;"></iframe>`;
+            } else {
+                customWidget.innerHTML = '<div id="widget-content">Widget personalizado aquí<br>(URL: <input type="text" id="widget-url" placeholder="https://..." style="width:200px;background:#444;border:1px solid #666;color:white;padding:2px;border-radius:3px;"> <button id="load-widget" style="background:#6441a5;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;">Cargar</button>)</div>';
+                document.getElementById('load-widget').addEventListener('click', () => {
+                    const url = document.getElementById('widget-url').value.trim();
+                    if (url) {
+                        customWidget.innerHTML = `<iframe src="${url}" width="100%" height="200" frameborder="0" style="border-radius:6px;"></iframe>`;
+                    }
+                });
+            }
+        });
+
+        // Send message
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (text) {
+                const platform = platformSelect.value;
+                const li = document.createElement('li');
+                li.className = 'message';
+                const iconSrc = platform === 'twitch' ? 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiByeD0iNCIgZmlsbD0iIzkxNGJmZiIvPgo8dGV4dCB4PSIxMCIgeT0iMTQiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5UPC90ZXh0Pgo8L3N2Zz4K' :
+                             platform === 'youtube' ? 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiByeD0iNCIgZmlsbD0iIzk5OWZmZiIvPgo8dGV4dCB4PSIxMCIgeT0iMTQiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9ImJsYWNrIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ZPC90ZXh0Pgo8L3N2Zz4K' :
+                             'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiByeD0iNCIgZmlsbD0iIzY2NmNmZiIvPgo8dGV4dCB4PSIxMCIgeT0iMTQiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5DPC90ZXh0Pgo8L3N2Zz4K';
+                li.innerHTML = `<img src="${iconSrc}" alt="${platform}" class="icon"><span class="text"><strong>You:</strong> ${text}</span>`;
+                messages.appendChild(li);
+                messages.scrollTop = messages.scrollHeight;
+                messageInput.value = '';
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Simulate chat
+        setInterval(() => {
+            if (!autoSimEnabled) return;
+            const platforms = [
+                {name: 'Twitch', icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiByeD0iNCIgZmlsbD0iIzkxNGJmZiIvPgo8dGV4dCB4PSIxMCIgeT0iMTQiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5UPC90ZXh0Pgo8L3N2Zz4K'},
+                {name: 'YouTube', icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiByeD0iNCIgZmlsbD0iIzk5OWZmZiIvPgo8dGV4dCB4PSIxMCIgeT0iMTQiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9ImJsYWNrIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ZPC90ZXh0Pgo8L3N2Zz4K'},
+                {name: 'Kick', icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiByeD0iNCIgZmlsbD0iIzMzMzMzMyIvPgo8dGV4dCB4PSIxMCIgeT0iMTQiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5LTwvdGV4dPgo8L3N2Zz4K'},
+                {name: 'TikTok', icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiByeD0iNCIgZmlsbD0iIzMzMzMzMyIvPgo8dGV4dCB4PSIxMCIgeT0iMTQiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5UPC90ZXh0Pgo8L3N2Zz4K'}
+            ];
+            const users = ['User1', 'GamerPro', 'ChatFan', 'StreamerLover', 'ProPlayer', 'CasualViewer'];
+            const texts = ['Hello!', 'Nice stream!', 'GG WP', 'Love the content', 'Subbed!', 'First time here', 'Amazing!', 'Keep it up!', 'LUL', 'PogChamp'];
+            const platform = platforms[Math.floor(Math.random() * platforms.length)];
+            const user = users[Math.floor(Math.random() * users.length)];
+            const text = texts[Math.floor(Math.random() * texts.length)];
+            const li = document.createElement('li');
+            li.className = 'message';
+            li.innerHTML = `<img src="${platform.icon}" alt="${platform.name}" class="icon"><span class="text"><strong>${user}:</strong> ${text}</span>`;
+            messages.appendChild(li);
+            messages.scrollTop = messages.scrollHeight;
+            playBeep(523, 100); // Chat sound
+
+            // Update notification badge
+            notificationCount++;
+            const badge = document.getElementById('notification-badge');
+            badge.textContent = notificationCount > 99 ? '99+' : notificationCount;
+            badge.style.display = 'inline-block';
+        }, 2000);
+
+        // Simulate alerts
+        setInterval(() => {
+            if (!autoSimEnabled) return;
+            const alertTypes = [
+                {type: 'follower', text: 'Nuevo seguidor!', class: 'alert', sound: () => playBeep(784, 200, 'sawtooth')},
+                {type: 'donation', text: 'Donación: $' + (Math.floor(Math.random() * 50) + 1), class: 'alert donation', sound: () => playBeep(659, 300, 'triangle')},
+                {type: 'sub', text: 'Nueva suscripción!', class: 'alert sub', sound: () => playBeep(988, 400, 'square')},
+                {type: 'bits', text: 'Bits: ' + (Math.floor(Math.random() * 1000) + 100) + ' ⚡', class: 'alert donation', sound: () => playBeep(1568, 250, 'triangle')},
+                {type: 'raid', text: 'Raid: ' + (Math.floor(Math.random() * 100) + 10) + ' viewers!', class: 'alert', sound: () => playBeep(1319, 500)}
+            ];
+            const alert = alertTypes[Math.floor(Math.random() * alertTypes.length)];
+            const div = document.createElement('div');
+            div.className = alert.class;
+            div.textContent = alert.text;
+            alerts.appendChild(div);
+            setTimeout(() => div.remove(), 6000);
+
+            // Play sound
+            alert.sound();
+
+            // Update follower count occasionally
+            if (alert.type === 'follower') {
+                twitchCount++;
+                document.getElementById('twitch-count').textContent = twitchCount;
+                showSoundWave('twitch-sound');
+            }
+        }, 7000);
+
+        // Typing indicator
+        setInterval(() => {
+            if (!autoSimEnabled) return;
+            const typingUsers = ['User1', 'GamerPro', 'ChatFan'];
+            const user = typingUsers[Math.floor(Math.random() * typingUsers.length)];
+            const li = document.createElement('li');
+            li.className = 'message';
+            li.innerHTML = `<img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiByeD0iNCIgZmlsbD0iIzkxNGJmZiIvPgo8dGV4dCB4PSIxMCIgeT0iMTQiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5UPC90ZXh0Pgo8L3N2Zz4K" alt="Twitch" class="icon"><span class="text chat-typing">${user} está escribiendo...</span>`;
+            messages.appendChild(li);
+            messages.scrollTop = messages.scrollHeight;
+            setTimeout(() => {
+                if (li.parentNode) li.remove();
+            }, 3000);
+        }, 15000);
+
+        // Auto simulation
+        let autoSimEnabled = true;
+        document.getElementById('auto-sim').addEventListener('change', (e) => {
+            autoSimEnabled = e.target.checked;
+        });
+
+        // Test buttons
+        document.getElementById('sim-follower').addEventListener('click', () => {
+            twitchCount++;
+            document.getElementById('twitch-count').textContent = twitchCount;
+            const div = document.createElement('div');
+            div.className = 'alert';
+            div.textContent = 'Nuevo seguidor!';
+            alerts.appendChild(div);
+            setTimeout(() => div.remove(), 5000);
+            playBeep(784, 200, 'sawtooth');
+            showSoundWave('twitch-sound');
+        });
+
+        document.getElementById('sim-sub').addEventListener('click', () => {
+            const div = document.createElement('div');
+            div.className = 'alert sub';
+            div.textContent = 'Nueva suscripción!';
+            alerts.appendChild(div);
+            setTimeout(() => div.remove(), 5000);
+            playBeep(988, 400, 'square');
+        });
+
+        document.getElementById('sim-donation').addEventListener('click', () => {
+            const div = document.createElement('div');
+            div.className = 'alert donation';
+            div.textContent = 'Donación: $10';
+            alerts.appendChild(div);
+            setTimeout(() => div.remove(), 5000);
+            playBeep(659, 300, 'triangle');
+        });
+
+        document.getElementById('sim-bits').addEventListener('click', () => {
+            const div = document.createElement('div');
+            div.className = 'alert donation';
+            div.textContent = 'Bits: 100 ⚡';
+            alerts.appendChild(div);
+            setTimeout(() => div.remove(), 5000);
+            playBeep(1568, 250, 'triangle');
+        });
+
+        document.getElementById('sim-raid').addEventListener('click', () => {
+            const div = document.createElement('div');
+            div.className = 'alert';
+            div.textContent = 'Raid: 50 viewers!';
+            alerts.appendChild(div);
+            setTimeout(() => div.remove(), 5000);
+            playBeep(1319, 500);
+        });
+
+        document.getElementById('sim-chat').addEventListener('click', () => {
+            const li = document.createElement('li');
+            li.className = 'message';
+            li.innerHTML = `<img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiByeD0iNCIgZmlsbD0iIzkxNGJmZiIvPgo8dGV4dCB4PSIxMCIgeT0iMTQiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5UPC90ZXh0Pgo8L3N2Zz4K" alt="Twitch" class="icon"><span class="text"><strong>TestUser:</strong> This is a test message!</span>`;
+            messages.appendChild(li);
+            messages.scrollTop = messages.scrollHeight;
+            playBeep(523, 150);
+        });
+
+        // Connection test buttons
+        document.getElementById('test-twitch').addEventListener('click', () => {
+            alert('Twitch: Conexión simulada exitosa ✅');
+        });
+        document.getElementById('test-youtube').addEventListener('click', () => {
+            alert('YouTube: Requiere configuración OAuth2');
+        });
+        document.getElementById('test-kick').addEventListener('click', () => {
+            alert('Kick: API no oficial - limitado');
+        });
+        document.getElementById('test-tiktok').addEventListener('click', () => {
+            alert('TikTok: API en desarrollo');
+        });
+
+        function showSoundWave(elementId) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'inline-block';
+            setTimeout(() => element.style.display = 'none', 1000);
+        }
+    </script>
+</body>
+</html>

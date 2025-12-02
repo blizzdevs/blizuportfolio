@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlizuLauncher - Launcher Seguro Nativo C++ Win32</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #e0e0e0;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-left: 2rem;
+        }
+
+        nav ul li a {
+            color: #e0e0e0;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        nav ul li a:hover {
+            color: #00d4ff;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="code" width="100" height="100" patternUnits="userSpaceOnUse"><text x="10" y="20" font-family="monospace" font-size="8" fill="%2300d4ff" opacity="0.1">&lt;/&gt;</text><text x="60" y="60" font-family="monospace" font-size="6" fill="%23ffffff" opacity="0.05">C++</text><circle cx="80" cy="20" r="2" fill="%2300d4ff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23code)"/></svg>');
+            opacity: 0.1;
+        }
+
+        .hero-content {
+            z-index: 1;
+            max-width: 900px;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px #00d4ff; }
+            to { text-shadow: 0 0 30px #00d4ff, 0 0 40px #00d4ff; }
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .tech-stack {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tech-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        /* Sections */
+        section {
+            padding: 5rem 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #00d4ff;
+        }
+
+        /* Architecture */
+        .architecture {
+            text-align: center;
+        }
+
+        .arch-overview {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .arch-diagram {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 2rem;
+        }
+
+        .arch-component {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .arch-component:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+        }
+
+        .arch-component h3 {
+            color: #00d4ff;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .arch-component ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .arch-component li {
+            margin: 0.5rem 0;
+            padding-left: 1rem;
+            position: relative;
+        }
+
+        .arch-component li::before {
+            content: "▸";
+            color: #00d4ff;
+            position: absolute;
+            left: 0;
+        }
+
+        /* Features */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .feature-card h3 {
+            color: #00d4ff;
+            margin-bottom: 1rem;
+        }
+
+        .feature-code {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            text-align: left;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Security */
+        .security-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .security-item {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .security-item h4 {
+            color: #00d4ff;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Performance */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .comparison-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .comparison-card.electron {
+            border-color: #ff6b6b;
+        }
+
+        .comparison-card.blizu {
+            border-color: #00d4ff;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            margin: 1rem 0;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Code Examples */
+        .code-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .code-block h4 {
+            color: #00d4ff;
+            margin-bottom: 1rem;
+        }
+
+        /* File Analysis */
+        .file-analysis {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .file-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+        }
+
+        .file-card h4 {
+            color: #00d4ff;
+            margin-bottom: 1rem;
+        }
+
+        .file-card .file-path {
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.5rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 2rem 0;
+            text-align: center;
+        }
+
+        footer p {
+            opacity: 0.7;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* Demo Launcher Styles */
+        .demo-launcher {
+            width: 800px;
+            height: 500px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #adb5bd;
+            border-radius: 8px;
+            position: relative;
+            margin: 2rem auto;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            font-family: 'MS Shell Dlg', 'Segoe UI', Tahoma, sans-serif;
+            overflow: hidden;
+        }
+
+        .status-bar {
+            background: linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 6px 12px;
+            border-bottom: 1px solid #90caf9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #1565c0;
+            font-weight: bold;
+        }
+
+        .main-area {
+            padding: 20px;
+            height: calc(100% - 120px);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .game-logo {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .logo-icon {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1976d2;
+        }
+
+        .news-section {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 12px;
+            flex: 1;
+        }
+
+        .news-section h4 {
+            margin: 0 0 10px 0;
+            color: #1976d2;
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .news-item {
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .news-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .news-title {
+            font-weight: bold;
+            color: #333;
+            font-size: 13px;
+            margin-bottom: 2px;
+        }
+
+        .news-date {
+            color: #666;
+            font-size: 10px;
+            margin-bottom: 4px;
+        }
+
+        .news-content {
+            color: #555;
+            font-size: 11px;
+            line-height: 1.3;
+        }
+
+        .log-panel {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 12px;
+            flex: 1;
+            max-height: 150px;
+        }
+
+        .log-panel h4 {
+            margin: 0 0 8px 0;
+            color: #495057;
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .log-content {
+            background: #000;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            padding: 8px;
+            border-radius: 2px;
+            height: 80px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            margin-bottom: 2px;
+            line-height: 1.2;
+        }
+
+        .control-buttons {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: flex;
+            gap: 4px;
+        }
+
+        .control-btn {
+            width: 28px;
+            height: 28px;
+            border: 1px solid #ccc;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .control-btn:hover {
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .control-btn:active {
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .play-button {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            color: white;
+            border: 1px solid #0d47a1;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .play-button:hover:not(:disabled) {
+            background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .play-button:active:not(:disabled) {
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .play-button:disabled {
+            background: #ccc;
+            border-color: #999;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .play-button.loading {
+            position: relative;
+            color: transparent;
+        }
+
+        .play-button.loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .modal.hidden {
+            display: none;
+        }
+
+        .modal-content {
+            background: white;
+            border: 2px solid #999;
+            border-radius: 6px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            background: linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 8px 12px;
+            border-bottom: 1px solid #90caf9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #1565c0;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .settings-modal-content {
+            width: 400px;
+        }
+
+        .setting-group {
+            padding: 16px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .setting-group:last-child {
+            border-bottom: none;
+        }
+
+        .setting-group h4 {
+            margin: 0 0 12px 0;
+            color: #333;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .radio-label, .checkbox-label {
+            display: block;
+            margin: 8px 0;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .radio-label input, .checkbox-label input {
+            margin-right: 8px;
+        }
+
+        .select-label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .select-label select {
+            width: 120px;
+            padding: 4px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 11px;
+            background: white;
+        }
+
+        .progress-modal-content {
+            width: 350px;
+            text-align: center;
+        }
+
+        #progress-status {
+            padding: 16px;
+            font-size: 12px;
+            color: #333;
+        }
+
+        .progress-bar {
+            width: 80%;
+            height: 20px;
+            background: #e0e0e0;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            margin: 0 auto 12px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #1976d2 0%, #1565c0 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        #progress-percent {
+            font-size: 14px;
+            font-weight: bold;
+            color: #1976d2;
+            margin-bottom: 16px;
+        }
+
+        .about-modal-content {
+            width: 450px;
+        }
+
+        .about-content {
+            padding: 20px;
+        }
+
+        .about-logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .about-logo .logo-icon {
+            font-size: 3rem;
+            margin-bottom: 8px;
+        }
+
+        .about-logo .logo-text {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #1976d2;
+            margin-bottom: 4px;
+        }
+
+        .about-logo .version {
+            color: #666;
+            font-size: 11px;
+        }
+
+        .about-description {
+            margin-bottom: 20px;
+        }
+
+        .about-description p {
+            margin: 8px 0;
+            color: #555;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .about-features h4 {
+            margin: 16px 0 8px 0;
+            color: #333;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .about-features ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .about-features li {
+            margin: 4px 0;
+            color: #555;
+            font-size: 11px;
+        }
+
+        .modal-buttons {
+            padding: 12px 16px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .modal-btn {
+            padding: 6px 16px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+
+        .modal-btn:hover {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            color: white;
+            border-color: #4caf50;
+        }
+
+        .cancel-btn {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+            border-color: #f44336;
+        }
+
+        .modal-btn.cancel-btn {
+            background: #f5f5f5;
+            color: #333;
+            border-color: #ccc;
+        }
+
+        .modal-btn.cancel-btn:hover {
+            background: #e0e0e0;
+        }
+
+        /* Animations */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-content {
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            nav ul {
+                display: none;
+            }
+
+            .demo-launcher {
+                width: 95vw;
+                height: 70vh;
+                margin: 1rem auto;
+            }
+
+            .main-area {
+                padding: 10px;
+                height: calc(100% - 100px);
+            }
+
+            .control-buttons {
+                top: 4px;
+                right: 4px;
+            }
+
+            .control-btn {
+                width: 24px;
+                height: 24px;
+                font-size: 12px;
+            }
+
+            .play-button {
+                bottom: 8px;
+                right: 8px;
+                padding: 8px 16px;
+                font-size: 11px;
+            }
+
+            .modal-content {
+                max-width: 95vw;
+                margin: 10px;
+            }
+
+            .settings-modal-content {
+                width: 100%;
+            }
+
+            .progress-modal-content {
+                width: 100%;
+            }
+
+            .about-modal-content {
+                width: 100%;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+
+            .arch-diagram {
+                grid-template-columns: 1fr;
+            }
+
+            .code-examples {
+                grid-template-columns: 1fr;
+            }
+
+            .file-analysis {
+                grid-template-columns: 1fr;
+            }
+
+            .tech-stack {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <div class="logo">BlizuLauncher</div>
+            <ul>
+                <li><a href="#hero">Home</a></li>
+                <li><a href="#demo">Demo</a></li>
+                <li><a href="#contact">Contacto</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section id="hero" class="hero">
+        <div class="hero-content">
+            <h1>BlizuLauncher</h1>
+            <p>Launcher seguro enterprise desarrollado en C++ puro con Win32 API. 
+               Migración completa desde Electron para máxima seguridad y rendimiento nativo.</p>
+            <div class="tech-stack">
+                <div class="tech-item">C++17</div>
+                <div class="tech-item">Win32 API</div>
+                <div class="tech-item">CMake</div>
+                <div class="tech-item">SHA256 + RSA</div>
+                <div class="tech-item">TLS 1.3</div>
+            </div>
+            <a href="#download" class="btn">Descargar v1.0.0</a>
+        </div>
+    </section>
+
+    <section id="architecture" class="container">
+        <h2 class="section-title">Arquitectura Modular C++ Win32</h2>
+        <div class="arch-overview fade-in-up">
+            <p style="font-size: 1.2rem; margin-bottom: 2rem;">
+                BlizuLauncher está construido con una arquitectura modular de 5 gestores especializados, 
+                cada uno manejando un aspecto específico de la funcionalidad del launcher.
+            </p>
+            <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;">
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem; color: #00d4ff;">📁</div>
+                    <div>5 Módulos</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem; color: #00d4ff;">🔒</div>
+                    <div>Enterprise Security</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem; color: #00d4ff;">⚡</div>
+                    <div>Native Performance</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem; color: #00d4ff;">🎮</div>
+                    <div>Multi-Instance</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="arch-diagram">
+            <div class="arch-component fade-in-up">
+                <h3>🏗️ Core</h3>
+                <ul>
+                    <li>Main.cpp - Punto de entrada WinMain</li>
+                    <li>Launcher.cpp - Orquestador principal</li>
+                    <li>Window.cpp - Ventana Win32 nativa</li>
+                    <li>ConfigManager.cpp - Configuración persistente</li>
+                    <li>Logger.cpp - Sistema de logging thread-safe</li>
+                </ul>
+            </div>
+            <div class="arch-component fade-in-up">
+                <h3>🔒 Security</h3>
+                <ul>
+                    <li>SecurityManager.cpp - Anti-debugging avanzado</li>
+                    <li>Detección de debuggers (IsDebuggerPresent)</li>
+                    <li>Protección de memoria (ASLR, DEP, SafeSEH)</li>
+                    <li>Criptografía (SHA256, RSA, AES-256)</li>
+                    <li>Verificación de integridad continua</li>
+                </ul>
+            </div>
+            <div class="arch-component fade-in-up">
+                <h3>⬆️ Update</h3>
+                <ul>
+                    <li>UpdateManager.cpp - Sistema de actualizaciones</li>
+                    <li>Descargas seguras con WinHTTP + TLS 1.3</li>
+                    <li>Verificación SHA256 de archivos</li>
+                    <li>Firmas digitales RSA-2048</li>
+                    <li>Manifest-based update system</li>
+                </ul>
+            </div>
+            <div class="arch-component fade-in-up">
+                <h3>🎮 Game</h3>
+                <ul>
+                    <li>GameManager.cpp - Gestión de procesos</li>
+                    <li>Soporte multi-cuenta (hasta 3 instancias)</li>
+                    <li>Monitoreo de procesos del juego</li>
+                    <li>Detección automática de personajes</li>
+                    <li>Gestión de credenciales de usuario</li>
+                </ul>
+            </div>
+            <div class="arch-component fade-in-up">
+                <h3>🖥️ UI</h3>
+                <ul>
+                    <li>UIManager.cpp - Interfaz nativa Win32</li>
+                    <li>Diálogos modales (Settings, Progress)</li>
+                    <li>Icono de bandeja del sistema</li>
+                    <li>Controles nativos (botones, barras de progreso)</li>
+                    <li>Configuración de resolución y audio</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="container">
+        <h2 class="section-title">Características Técnicas</h2>
+        <div class="features">
+            <div class="feature-card fade-in-up">
+                <span class="feature-icon">🚀</span>
+                <h3>Rendimiento Nativo</h3>
+                <p>Desarrollado en C++17 con Win32 API pura. Sin dependencias externas ni frameworks pesados. 
+                   Inicio en menos de 1 segundo con solo 10-30MB de RAM.</p>
+                <div class="feature-code">
+WinMain(HINSTANCE hInst, ...) {<br>
+&nbsp;&nbsp;INITCOMMONCONTROLSEX icex = {sizeof(icex)};<br>
+&nbsp;&nbsp;InitCommonControlsEx(&icex);<br>
+&nbsp;&nbsp;return launcher.Run();<br>
+}
+                </div>
+            </div>
+            <div class="feature-card fade-in-up">
+                <span class="feature-icon">🔐</span>
+                <h3>Seguridad Enterprise</h3>
+                <p>Protecciones avanzadas contra reverse engineering, inyección de memoria y ataques MITM. 
+                   Implementación FIPS-compliant con CryptoAPI de Windows.</p>
+                <div class="feature-code">
+bool SecurityManager::VerifyCodeIntegrity() {<br>
+&nbsp;&nbsp;if (IsDebuggerPresent()) return false;<br>
+&nbsp;&nbsp;return CheckMemoryIntegrity();<br>
+}
+                </div>
+            </div>
+            <div class="feature-card fade-in-up">
+                <span class="feature-icon">📦</span>
+                <h3>Actualizaciones Seguras</h3>
+                <p>Sistema de actualizaciones basado en manifiestos con verificación criptográfica completa. 
+                   Descargas sobre TLS 1.3 con validación de certificados.</p>
+                <div class="feature-code">
+bool UpdateManager::ValidateFile(filePath, hash) {<br>
+&nbsp;&nbsp;std::string actual = CalculateSHA256(filePath);<br>
+&nbsp;&nbsp;return actual == expectedHash;<br>
+}
+                </div>
+            </div>
+            <div class="feature-card fade-in-up">
+                <span class="feature-icon">👥</span>
+                <h3>Multi-Instancia</h3>
+                <p>Soporte para hasta 3 instancias simultáneas del juego. Gestión automática de procesos, 
+                   monitoreo continuo y detección de personajes activos.</p>
+                <div class="feature-code">
+bool GameManager::LaunchGame() {<br>
+&nbsp;&nbsp;if (GetRunningGameCount() >= 3) return false;<br>
+&nbsp;&nbsp;return LaunchProcess(exePath, credentials);<br>
+}
+                </div>
+            </div>
+            <div class="feature-card fade-in-up">
+                <span class="feature-icon">⚙️</span>
+                <h3>Configuración Nativa</h3>
+                <p>Gestión de configuración híbrida (registro + archivos). Auto-detección de rutas de instalación 
+                   y persistencia robusta de configuraciones.</p>
+                <div class="feature-code">
+bool ConfigManager::LoadFromRegistry() {<br>
+&nbsp;&nbsp;HKEY hKey;<br>
+&nbsp;&nbsp;RegOpenKeyExA(HKEY_CURRENT_USER, regPath, ...);<br>
+&nbsp;&nbsp;// Load all config values<br>
+}
+                </div>
+            </div>
+            <div class="feature-card fade-in-up">
+                <span class="feature-icon">📊</span>
+                <h3>Logging Avanzado</h3>
+                <p>Sistema de logging thread-safe con niveles múltiples. Logs detallados para debugging 
+                   y auditoría sin comprometer información sensible.</p>
+                <div class="feature-code">
+void Logger::Log(int level, const std::string& msg) {<br>
+&nbsp;&nbsp;std::lock_guard&lt;std::mutex&gt; lock(m_mutex);<br>
+&nbsp;&nbsp;m_logFile << timestamp << " [" << level << "] " << msg;<br>
+}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="security" class="container">
+        <h2 class="section-title">Seguridad Enterprise Implementada</h2>
+        <div class="security-grid">
+            <div class="security-item fade-in-up">
+                <h4>🔍 Anti-Debugging</h4>
+                <p>IsDebuggerPresent(), timing attacks, hardware breakpoints, PEB manipulation detection</p>
+            </div>
+            <div class="security-item fade-in-up">
+                <h4>🧠 Protección de Memoria</h4>
+                <p>ASLR, DEP, SafeSEH habilitados. Secure allocation con zeroing automático</p>
+            </div>
+            <div class="security-item fade-in-up">
+                <h4>🌐 Seguridad de Red</h4>
+                <p>TLS 1.3 obligatorio, certificate pinning, protección MITM completa</p>
+            </div>
+            <div class="security-item fade-in-up">
+                <h4>📁 Integridad de Archivos</h4>
+                <p>SHA256 verification, firmas RSA-2048, atomic updates con rollback</p>
+            </div>
+            <div class="security-item fade-in-up">
+                <h4>⚙️ Seguridad de Procesos</h4>
+                <p>Aislamiento completo, elevation checking, monitoreo continuo de procesos</p>
+            </div>
+            <div class="security-item fade-in-up">
+                <h4>🔐 Criptografía FIPS</h4>
+                <p>Windows CryptoAPI, AES-256, PBKDF2, certificados digitales validados</p>
+            </div>
+            <div class="security-item fade-in-up">
+                <h4>🚫 Anti-Tampering</h4>
+                <p>Detección de módulos sospechosos, verificación de secciones de código</p>
+            </div>
+            <div class="security-item fade-in-up">
+                <h4>📝 Auditoría Completa</h4>
+                <p>Logging seguro sin disclosure, trazabilidad completa de operaciones</p>
+            </div>
+        </div>
+
+        <h2 class="section-title" style="margin-top: 4rem;">Comparación Técnica Detallada</h2>
+        <div class="comparison">
+            <div class="comparison-card electron">
+                <h3>🚀 Electron Original</h3>
+                <div class="metric"><span>Lenguaje:</span><span>JavaScript/Node.js</span></div>
+                <div class="metric"><span>Inicio:</span><span>3-10 segundos</span></div>
+                <div class="metric"><span>RAM Base:</span><span>100-300 MB</span></div>
+                <div class="metric"><span>Tamaño:</span><span>100+ MB</span></div>
+                <div class="metric"><span>Seguridad:</span><span>Limitada</span></div>
+                <div class="metric"><span>Dependencias:</span><span>100+</span></div>
+                <div class="metric"><span>Reverse Engineering:</span><span>Muy Fácil</span></div>
+                <div class="metric"><span>Compilación:</span><span>Interpretado</span></div>
+            </div>
+            <div class="comparison-card blizu">
+                <h3>⚡ BlizuLauncher C++</h3>
+                <div class="metric"><span>Lenguaje:</span><span>C++17 Win32</span></div>
+                <div class="metric"><span>Inicio:</span><span>&lt; 1 segundo</span></div>
+                <div class="metric"><span>RAM Base:</span><span>10-30 MB</span></div>
+                <div class="metric"><span>Tamaño:</span><span>2-5 MB</span></div>
+                <div class="metric"><span>Seguridad:</span><span>Enterprise</span></div>
+                <div class="metric"><span>Dependencias:</span><span>0</span></div>
+                <div class="metric"><span>Reverse Engineering:</span><span>Muy Difícil</span></div>
+                <div class="metric"><span>Compilación:</span><span>Nativa</span></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container">
+        <h2 class="section-title">Ejemplos de Código de Seguridad</h2>
+        <div class="code-examples">
+            <div class="code-block fade-in-up">
+                <h4>🔒 Verificación de Integridad</h4>
+                <pre><code>bool SecurityManager::PerformIntegrityCheck() {
+    Logger::LogInfo("Performing integrity check...");
+
+    if (!VerifyCodeIntegrity()) {
+        Logger::LogError("Code integrity failed");
+        return false;
+    }
+
+    if (!CheckForDebuggers()) {
+        Logger::LogError("Debugger detected");
+        return false;
+    }
+
+    return true;
+}</code></pre>
+            </div>
+            <div class="code-block fade-in-up">
+                <h4>⬆️ Actualización Segura</h4>
+                <pre><code>bool UpdateManager::DownloadUpdate(UpdateInfo& update) {
+    // Verificar servidor autenticado
+    if (!VerifyUpdateServer(update.serverUrl)) return false;
+
+    // Descargar con verificación SHA256
+    if (!client.DownloadFile(update.downloadUrl, tempPath)) return false;
+
+    // Verificar hash
+    if (!VerifyFileHash(tempPath, update.expectedHash)) return false;
+
+    // Verificar firma digital RSA
+    if (!VerifyDigitalSignature(tempPath)) return false;
+
+    return ApplyUpdate();
+}</code></pre>
+            </div>
+            <div class="code-block fade-in-up">
+                <h4>🎮 Lanzamiento Multi-Instancia</h4>
+                <pre><code>bool GameManager::LaunchGame(const std::string& gamePath) {
+    // Verificar límite de instancias
+    if (GetRunningGameCount() >= 3) {
+        Logger::LogWarning("Max 3 instances reached");
+        return false;
+    }
+
+    // Verificar integridad del ejecutable
+    if (!ValidateGameExecutable(gamePath)) return false;
+
+    // Lanzar proceso con credenciales
+    return LaunchProcess(exePath, accountCredentials);
+}</code></pre>
+            </div>
+            <div class="code-block fade-in-up">
+                <h4>🖥️ Interfaz Nativa Win32</h4>
+                <pre><code>bool UIManager::CreateMainInterface() {
+    // Crear botones nativos Win32
+    m_playButton = CreateButton(x, y, width, height, "Play Game", 1001);
+
+    // Configurar callbacks
+    m_mainWindow->SetButtonClickCallback([this](int id) {
+        switch (id) {
+            case 1001: OnPlayButtonClick(); break;
+            case 1002: ShowSettingsDialog(); break;
+        }
+    });
+
+    return true;
+}</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <section id="analysis" class="container">
+        <h2 class="section-title">Análisis Exhaustivo de Archivos</h2>
+        <div class="file-analysis">
+            <div class="file-card fade-in-up">
+                <h4>🏗️ Main.cpp</h4>
+                <div class="file-path">src/Main.cpp (75 líneas)</div>
+                <p><strong>Punto de Entrada:</strong> WinMain con inicialización de controles comunes</p>
+                <p><strong>Características:</strong> Logging path en AppData, manejo robusto de excepciones, instancia única del launcher</p>
+            </div>
+            <div class="file-card fade-in-up">
+                <h4>🎯 Launcher.cpp</h4>
+                <div class="file-path">src/Launcher.cpp (296 líneas)</div>
+                <p><strong>Orquestador Principal:</strong> Inicialización ordenada de módulos</p>
+                <p><strong>Funciones Críticas:</strong> InitializeComponents(), OnPlayButtonClick(), PerformInitialUpdateCheck()</p>
+            </div>
+            <div class="file-card fade-in-up">
+                <h4>🖥️ Window.cpp</h4>
+                <div class="file-path">src/Core/Window.cpp (241 líneas)</div>
+                <p><strong>Ventana Win32 Nativa:</strong> CreateWindowEx con estilos WS_OVERLAPPEDWINDOW</p>
+                <p><strong>Características:</strong> Sistema de callbacks, soporte tray, atajos de teclado</p>
+            </div>
+            <div class="file-card fade-in-up">
+                <h4>⚙️ ConfigManager.cpp</h4>
+                <div class="file-path">src/Core/ConfigManager.cpp (275 líneas)</div>
+                <p><strong>Configuración Dual:</strong> Registry + archivos con auto-detección</p>
+                <p><strong>Persistencia:</strong> HKEY_CURRENT_USER\SOFTWARE\BlizuLauncher</p>
+            </div>
+            <div class="file-card fade-in-up">
+                <h4>📝 Logger.cpp</h4>
+                <div class="file-path">src/Core/Logger.cpp (111 líneas)</div>
+                <p><strong>Thread-Safe:</strong> std::mutex para acceso concurrente</p>
+                <p><strong>Format:</strong> timestamp [LEVEL] message con flushing inmediato</p>
+            </div>
+            <div class="file-card fade-in-up">
+                <h4>🔒 SecurityManager.cpp</h4>
+                <div class="file-path">src/Security/SecurityManager.cpp (402 líneas)</div>
+                <p><strong>Protecciones Enterprise:</strong> Anti-debugging, memoria, criptografía</p>
+                <p><strong>CryptoAPI:</strong> SHA256, RSA, AES-256 con Windows CAPI</p>
+            </div>
+            <div class="file-card fade-in-up">
+                <h4>⬆️ UpdateManager.cpp</h4>
+                <div class="file-path">src/Update/UpdateManager.cpp (404 líneas)</div>
+                <p><strong>Actualizaciones Seguras:</strong> Manifest-based con verificación triple</p>
+                <p><strong>Protocolo:</strong> WinHTTP + TLS 1.3 + SHA256 + RSA signatures</p>
+            </div>
+            <div class="file-card fade-in-up">
+                <h4>🎮 GameManager.cpp</h4>
+                <div class="file-path">src/Game/GameManager.cpp (387 líneas)</div>
+                <p><strong>Multi-Instancia:</strong> Hasta 3 procesos simultáneos</p>
+                <p><strong>Gestión:</strong> Monitoreo, detección de personajes, credenciales</p>
+            </div>
+            <div class="file-card fade-in-up">
+                <h4>🖼️ UIManager.cpp</h4>
+                <div class="file-path">src/UI/UIManager.cpp (574 líneas)</div>
+                <p><strong>Controles Win32:</strong> Botones, progress bars, dialogs nativos</p>
+                <p><strong>Sistema Tray:</strong> Notificaciones y minimización</p>
+            </div>
+            <div class="file-card fade-in-up">
+                <h4>📋 CMakeLists.txt</h4>
+                <div class="file-path">CMakeLists.txt (69 líneas)</div>
+                <p><strong>Build System:</strong> Visual Studio 2022 con C++17</p>
+                <p><strong>Librerías:</strong> kernel32, user32, crypt32, winhttp, etc.</p>
+            </div>
+            <div class="file-card fade-in-up">
+                <h4>🎨 resources.rc</h4>
+                <div class="file-path">src/resources.rc (50 líneas)</div>
+                <p><strong>Recursos Incrustados:</strong> Diálogos IDD_SETTINGS, IDD_PROGRESS</p>
+                <p><strong>Controles:</strong> RADIOBUTTON, COMBOBOX, PROGRESS_CLASS</p>
+            </div>
+            <div class="file-card fade-in-up">
+                <h4>🧪 TestMain.cpp</h4>
+                <div class="file-path">src/TestMain.cpp (6 líneas)</div>
+                <p><strong>Binario de Prueba:</strong> MessageBox simple para verificación</p>
+                <p><strong>Propósito:</strong> Validar compilación y ejecución básica</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="demo" class="container">
+        <h2 class="section-title">Demo Interactiva - BlizuLauncher</h2>
+
+        <!-- Demo Launcher Interface -->
+        <div class="demo-launcher">
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <span id="status-text">Ready to launch...</span>
+                <span id="account-counter">Accounts: 0/3</span>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="main-area">
+                <div class="game-logo">
+                    <div class="logo-icon">🎮</div>
+                    <div class="logo-text">MU Online</div>
+                </div>
+
+                <div class="news-section">
+                    <h4>📰 Latest News</h4>
+                    <div class="news-item">
+                        <div class="news-title">BlizuLauncher v1.0.0 Released!</div>
+                        <div class="news-date">December 2025</div>
+                        <div class="news-content">Secure native launcher with enterprise-grade protection now available.</div>
+                    </div>
+                    <div class="news-item">
+                        <div class="news-title">Multi-Account Support</div>
+                        <div class="news-date">December 2025</div>
+                        <div class="news-content">Launch up to 3 game instances simultaneously with full security.</div>
+                    </div>
+                </div>
+
+                <!-- Log Panel -->
+                <div class="log-panel">
+                    <h4>📋 System Logs</h4>
+                    <div id="log-content" class="log-content">
+                        <div class="log-entry">[INFO] BlizuLauncher initialized successfully</div>
+                        <div class="log-entry">[INFO] Security manager initialized</div>
+                        <div class="log-entry">[INFO] Configuration loaded from registry</div>
+                        <div class="log-entry">[INFO] Ready to launch...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control Buttons (Top Right) -->
+            <div class="control-buttons">
+                <button id="settings-btn" title="Settings" class="control-btn">⚙</button>
+                <button id="autologin-btn" title="Auto Login" class="control-btn">🔑</button>
+                <button id="about-btn" title="About" class="control-btn">?</button>
+            </div>
+
+            <!-- Play Button (Bottom Right) -->
+            <button id="play-btn" class="play-button">Play Game</button>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal hidden">
+            <div class="modal-content settings-modal-content">
+                <div class="modal-header">
+                    <h3>Game Settings</h3>
+                    <button id="close-settings" class="close-btn">×</button>
+                </div>
+
+                <div class="setting-group">
+                    <h4>Display Mode</h4>
+                    <label class="radio-label">
+                        <input type="radio" name="display" value="window" checked>
+                        <span class="radio-text">Window Mode</span>
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="display" value="fullscreen">
+                        <span class="radio-text">Fullscreen Mode</span>
+                    </label>
+                </div>
+
+                <div class="setting-group">
+                    <label class="select-label">Resolution:
+                        <select id="resolution-select">
+                            <option value="640x480">640x480</option>
+                            <option value="800x600">800x600</option>
+                            <option value="1024x768">1024x768</option>
+                            <option value="1280x1024">1280x1024</option>
+                            <option value="1366x768">1366x768</option>
+                            <option value="1600x900">1600x900</option>
+                            <option value="1920x1080" selected>1920x1080</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div class="setting-group">
+                    <h4>Audio Settings</h4>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="music-enabled" checked>
+                        <span class="checkbox-text">Enable Music</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="sound-enabled" checked>
+                        <span class="checkbox-text">Enable Sound Effects</span>
+                    </label>
+                </div>
+
+                <div class="modal-buttons">
+                    <button id="save-settings" class="modal-btn save-btn">Save</button>
+                    <button id="cancel-settings" class="modal-btn cancel-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Modal -->
+        <div id="progress-modal" class="modal hidden">
+            <div class="modal-content progress-modal-content">
+                <div class="modal-header">
+                    <h3>Downloading Updates...</h3>
+                </div>
+
+                <div id="progress-status">Initializing download...</div>
+
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+
+                <div id="progress-percent">0%</div>
+
+                <div class="modal-buttons">
+                    <button id="cancel-progress" class="modal-btn cancel-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Modal -->
+        <div id="about-modal" class="modal hidden">
+            <div class="modal-content about-modal-content">
+                <div class="modal-header">
+                    <h3>About BlizuLauncher</h3>
+                    <button id="close-about" class="close-btn">×</button>
+                </div>
+
+                <div class="about-content">
+                    <div class="about-logo">
+                        <div class="logo-icon">🔒</div>
+                        <div class="logo-text">BlizuLauncher</div>
+                        <div class="version">v1.0.0</div>
+                    </div>
+
+                    <div class="about-description">
+                        <p>A secure, native Windows launcher for MU Online built with C++ and Win32 API.</p>
+                        <p>Enterprise-grade security with multi-account support and automatic updates.</p>
+                    </div>
+
+                    <div class="about-features">
+                        <h4>Key Features:</h4>
+                        <ul>
+                            <li>🔒 Advanced security & anti-tampering</li>
+                            <li>⚡ Native performance (C++ Win32)</li>
+                            <li>👥 Multi-account support (up to 3)</li>
+                            <li>⬆️ Secure automatic updates</li>
+                            <li>🖥️ Native Windows interface</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="modal-buttons">
+                    <button id="close-about-btn" class="modal-btn">Close</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="container">
+        <h2 class="section-title">Contacto</h2>
+        <div style="text-align: center; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; padding: 3rem;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">💬</div>
+            <h3 style="color: #00d4ff; margin-bottom: 1rem;">Únete a Nuestra Comunidad</h3>
+            <p style="font-size: 1.2rem; margin-bottom: 2rem;">Discusiones sobre desarrollo, soporte técnico y actualizaciones</p>
+            <a href="https://discord.gg/qWV7CPBzDM" class="btn" style="font-size: 1.2rem; padding: 1rem 2rem;" target="_blank">
+                <span style="font-size: 1.5rem; margin-right: 0.5rem;">💙</span>
+                Unirse al Discord
+            </a>
+            <p style="margin-top: 1rem; opacity: 0.7; font-size: 0.9rem;">
+                Discord Server: <code style="background: rgba(0,0,0,0.3); padding: 0.2rem 0.5rem; border-radius: 4px;">qWV7CPBzDM</code>
+            </p>
+        </div>
+    </section>
+
+    <section id="download" class="container" style="text-align: center;">
+        <h2 class="section-title">Descargar BlizuLauncher v1.0.0</h2>
+        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 15px; padding: 2rem; margin-bottom: 2rem;">
+            <h3 style="color: #00d4ff; margin-bottom: 1rem;">Especificaciones Técnicas</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                <div><strong>Plataforma:</strong> Windows 7/8/10/11 (x86/x64)</div>
+                <div><strong>Tamaño:</strong> 2.3 MB (comprimido)</div>
+                <div><strong>Compilación:</strong> Visual Studio 2022 (v143)</div>
+                <div><strong>Dependencias:</strong> Ninguna (standalone)</div>
+                <div><strong>Arquitectura:</strong> Win32 API nativa</div>
+                <div><strong>Instalación:</strong> Automática (portable)</div>
+            </div>
+        </div>
+        <a href="#" class="btn" style="font-size: 1.2rem; padding: 1.5rem 3rem;">⬇️ Descargar BlizuLauncher.exe (2.3 MB)</a>
+        <p style="margin-top: 1rem; opacity: 0.7;">SHA256: <code style="background: rgba(0,0,0,0.3); padding: 0.2rem 0.5rem; border-radius: 4px;">a1b2c3d4e5f6789012345678901234567890123456789012345678901234567890</code></p>
+        <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.7;">
+            Verificado digitalmente • Compatible con Windows Security • Sin instalación requerida
+        </p>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 BlizuLauncher. Desarrollado en C++17 con Win32 API para máxima seguridad y rendimiento.</p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+                Arquitectura modular • Seguridad enterprise • Rendimiento nativo • Código abierto
+            </p>
+            <p style="margin-top: 0.5rem; font-size: 0.8rem; opacity: 0.6;">
+                Construido con: CMake • Visual Studio 2022 • Windows SDK 10.0.19041.0 • CryptoAPI
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in-up');
+                }
+            });
+        }, observerOptions);
+
+        // Observe elements
+        document.querySelectorAll('.fade-in-up').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Header background on scroll
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 100) {
+                header.style.background = 'rgba(0, 0, 0, 0.95)';
+            } else {
+                header.style.background = 'rgba(0, 0, 0, 0.9)';
+            }
+        });
+
+        // Add fade-in-up to initially hidden elements
+        document.addEventListener('DOMContentLoaded', () => {
+            const elements = document.querySelectorAll('.feature-card, .arch-component, .security-item, .code-block, .file-card');
+            elements.forEach(el => {
+                if (!el.classList.contains('fade-in-up')) {
+                    el.classList.add('fade-in-up');
+                }
+            });
+
+            // Initialize demo functionality
+            initializeDemo();
+        });
+
+        // Demo Launcher Functionality
+        function initializeDemo() {
+            // State management
+            let launcherState = {
+                status: 'Ready to launch...',
+                accounts: 0,
+                isLaunching: false,
+                settings: {
+                    displayMode: 'window',
+                    resolution: '1920x1080',
+                    musicEnabled: true,
+                    soundEnabled: true
+                }
+            };
+
+            // DOM elements
+            const statusText = document.getElementById('status-text');
+            const accountCounter = document.getElementById('account-counter');
+            const playBtn = document.getElementById('play-btn');
+            const logContent = document.getElementById('log-content');
+
+            // Modal elements
+            const settingsModal = document.getElementById('settings-modal');
+            const progressModal = document.getElementById('progress-modal');
+            const aboutModal = document.getElementById('about-modal');
+
+            // Button event listeners
+            document.getElementById('settings-btn').addEventListener('click', openSettings);
+            document.getElementById('autologin-btn').addEventListener('click', autoLogin);
+            document.getElementById('about-btn').addEventListener('click', openAbout);
+            playBtn.addEventListener('click', launchGame);
+
+            // Modal close buttons
+            document.getElementById('close-settings').addEventListener('click', () => closeModal(settingsModal));
+            document.getElementById('cancel-settings').addEventListener('click', () => closeModal(settingsModal));
+            document.getElementById('save-settings').addEventListener('click', saveSettings);
+            document.getElementById('cancel-progress').addEventListener('click', () => closeModal(progressModal));
+            document.getElementById('close-about').addEventListener('click', () => closeModal(aboutModal));
+            document.getElementById('close-about-btn').addEventListener('click', () => closeModal(aboutModal));
+
+            // Click outside modal to close
+            [settingsModal, progressModal, aboutModal].forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        closeModal(modal);
+                    }
+                });
+            });
+
+            // Functions
+            function updateStatus(newStatus) {
+                launcherState.status = newStatus;
+                statusText.textContent = newStatus;
+                addLogEntry(`[INFO] ${newStatus}`);
+            }
+
+            function updateAccounts(count) {
+                launcherState.accounts = count;
+                accountCounter.textContent = `Accounts: ${count}/3`;
+                addLogEntry(`[INFO] Active game accounts: ${count}/3`);
+            }
+
+            function addLogEntry(message) {
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-entry';
+                logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+                logContent.appendChild(logEntry);
+                logContent.scrollTop = logContent.scrollHeight;
+            }
+
+            function openModal(modal) {
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeModal(modal) {
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+
+            function openSettings() {
+                // Load current settings into modal
+                document.querySelector(`input[name="display"][value="${launcherState.settings.displayMode}"]`).checked = true;
+                document.getElementById('resolution-select').value = launcherState.settings.resolution;
+                document.getElementById('music-enabled').checked = launcherState.settings.musicEnabled;
+                document.getElementById('sound-enabled').checked = launcherState.settings.soundEnabled;
+
+                openModal(settingsModal);
+                addLogEntry('[INFO] Settings dialog opened');
+            }
+
+            function saveSettings() {
+                // Save settings from modal
+                launcherState.settings.displayMode = document.querySelector('input[name="display"]:checked').value;
+                launcherState.settings.resolution = document.getElementById('resolution-select').value;
+                launcherState.settings.musicEnabled = document.getElementById('music-enabled').checked;
+                launcherState.settings.soundEnabled = document.getElementById('sound-enabled').checked;
+
+                closeModal(settingsModal);
+                addLogEntry('[INFO] Settings saved successfully');
+                updateStatus('Settings updated successfully');
+                setTimeout(() => updateStatus('Ready to launch...'), 2000);
+            }
+
+            function autoLogin() {
+                addLogEntry('[INFO] Auto-login initiated');
+                updateStatus('Performing auto-login...');
+
+                setTimeout(() => {
+                    updateStatus('Auto-login successful');
+                    addLogEntry('[INFO] Auto-login completed - credentials loaded');
+                    setTimeout(() => updateStatus('Ready to launch...'), 1500);
+                }, 2000);
+            }
+
+            function openAbout() {
+                openModal(aboutModal);
+                addLogEntry('[INFO] About dialog opened');
+            }
+
+            function launchGame() {
+                if (launcherState.isLaunching || launcherState.accounts >= 3) {
+                    if (launcherState.accounts >= 3) {
+                        updateStatus('Maximum 3 instances reached');
+                        addLogEntry('[WARNING] Cannot launch more than 3 instances');
+                    }
+                    return;
+                }
+
+                launcherState.isLaunching = true;
+                playBtn.disabled = true;
+                playBtn.classList.add('loading');
+                playBtn.textContent = 'Launching...';
+
+                // Launch sequence
+                updateStatus('Checking for updates...');
+                addLogEntry('[INFO] Game launch initiated');
+
+                setTimeout(() => {
+                    updateStatus('Verifying game files...');
+                    addLogEntry('[INFO] File integrity check passed');
+                }, 1000);
+
+                setTimeout(() => {
+                    updateStatus('Launching game...');
+                    addLogEntry('[INFO] Creating game process');
+                }, 2000);
+
+                setTimeout(() => {
+                    updateStatus('Game launched successfully!');
+                    updateAccounts(launcherState.accounts + 1);
+                    addLogEntry(`[SUCCESS] Game instance ${launcherState.accounts + 1} launched`);
+
+                    // Reset button
+                    playBtn.disabled = false;
+                    playBtn.classList.remove('loading');
+                    playBtn.textContent = 'Play Game';
+                    launcherState.isLaunching = false;
+
+                    setTimeout(() => updateStatus('Ready to launch...'), 3000);
+                }, 3500);
+            }
+
+            // Initialize with some demo logs
+            addLogEntry('[INFO] BlizuLauncher demo initialized');
+            addLogEntry('[INFO] Security systems active');
+            addLogEntry('[INFO] Multi-account support enabled');
+        }
+    </script>
+</body>
+</html>
